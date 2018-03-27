@@ -74,7 +74,7 @@ def main():
 			try:
 				line_number += 1
 				tweet = json.loads(l)
- 				sdate = parse_twitter_date(tweet["created_at"])
+				sdate = parse_twitter_date(tweet["created_at"])
 				# If start and end date are specified and tweet date is out of this range - ignore this tweet
 				if (start_date and sdate < start_date) or (end_date and sdate > end_date):
 					continue
