@@ -39,11 +39,17 @@ def main():
 	parser.add_option("-t", "--top", action="store", type="int", dest="top", help="number of top authors to display", default=10)
 	parser.add_option("-o", action="store", type="string", dest="out_path", help="output path for CSV file", default="tweets.csv")
 	parser.add_option("-s", action="store", type="string", dest="separator", help="separator character for output file (default is comma)", default=",")
+	parser.add_option("--start_date", action="store", type="string", dest="start_date", help="separator character for output file (default is comma)", default="")
+	parser.add_option("--end_date", action="store", type="string", dest="end_date", help="separator character for output file (default is comma)", default="")
+
 	(options, args) = parser.parse_args()	
 	if( len(args) < 1 ):
 		parser.error( "Must specify at least one JSONL file" )
 	log.basicConfig(level=20, format='%(message)s')
 	sep = options.separator
+
+        start_date = datetime.strptime(options.start_date, '%Y-%m-%d') if option.start_date else None
+        end_date = datetime.strptime(options.end_date, '%Y-%m-%d') if option.end_date else None
 
 	log.info("Tweets will be written to %s ..." % options.out_path )
 	header = ["Tweet_ID", "Created_At", "Author_Screen_Name", "Author_Id", "Text" ]
@@ -62,7 +68,12 @@ def main():
 			try:
 				line_number += 1
 				tweet = json.loads(l)
-				sdate = parse_twitter_date(tweet["created_at"]).strftime("%Y-%m-%d %H:%M:%S")
+ 				sdate = parse_twitter_date(tweet["created_at"])
+				# If start and end date are specified and tweet date is out of this range - ignore this tweet
+				if (start_date and sdate < start_date) or (end_date and sdate > end_date):
+					continue
+
+				sdate = sdate.strftime("%Y-%m-%d %H:%M:%S")
 				values = [ fmt_id(tweet["id"]), sdate, norm(tweet["user"]["screen_name"], sep).lower(), fmt_id(tweet["user"]["id"]), norm(tweet["text"], sep) ]
 				fout.write("%s\n" % sep.join(values) )
 				num_tweets += 1
@@ -81,3 +92,5 @@ def main():
 
 if __name__ == "__main__":
 	main()
+
+        
