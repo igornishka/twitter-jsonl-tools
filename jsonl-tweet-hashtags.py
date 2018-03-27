@@ -18,13 +18,33 @@ from prettytable import PrettyTable
 
 # --------------------------------------------------------------
 
+
+def parse_twitter_date( s, ignore_time_zones = True ):
+	# hack for cases where timezone is not supported by Python strptime 
+	if ignore_time_zones:
+		parts = s.split(" ")
+		smodified =" ".join( parts[0:4] + [ parts[-1] ] )
+		return  datetime.strptime(smodified,'%a %b %d %H:%M:%S %Y')
+	return datetime.strptime(s,'%a %b %d %H:%M:%S %z %Y')
+
 def main():
 	parser = OptionParser(usage="usage: %prog [options] json_file1 json_file2 ...")
 	parser.add_option("-t", "--top", action="store", type="int", dest="top", help="number of top hashtags to display", default=10)
+	parser.add_option("--start_date", action="store", type="string", dest="start_date", help="separator character for output file (default is comma)", default="")
+	parser.add_option("--end_date", action="store", type="string", dest="end_date", help="separator character for output file (default is comma)", default="")
 	(options, args) = parser.parse_args()	
 	if( len(args) < 1 ):
 		parser.error( "Must specify at least one JSONL file" )
 	log.basicConfig(level=20, format='%(message)s')
+
+	if options.start_date:
+		start_date = datetime.strptime(options.start_date, '%Y-%m-%d')
+	else:
+		start_date = None
+	if options.end_date:
+		end_date = datetime.strptime(options.end_date, '%Y-%m-%d')
+	else:
+		end_date = None
 
 	for tweets_path in args:
 		log.info("Loading tweets from %s ..." % tweets_path)
@@ -40,6 +60,12 @@ def main():
 			try:
 				line_number += 1
 				tweet = json.loads(l)
+
+				sdate = parse_twitter_date(tweet["created_at"])
+				# If start and end date are specified and tweet date is out of this range - ignore this tweet
+				if (start_date and sdate < start_date) or (end_date and sdate > end_date):
+					continue
+
 				if "entities" in tweet:
 					if "hashtags" in tweet["entities"] and len(tweet["entities"]["hashtags"]) > 0:
 						has_hashtags += 1
