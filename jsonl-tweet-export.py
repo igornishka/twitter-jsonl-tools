@@ -48,8 +48,14 @@ def main():
 	log.basicConfig(level=20, format='%(message)s')
 	sep = options.separator
 
-        start_date = datetime.strptime(options.start_date, '%Y-%m-%d') if options.start_date else None
-        end_date = datetime.strptime(options.end_date, '%Y-%m-%d') if options.end_date else None
+	if options.start_date:
+	        start_date = datetime.strptime(options.start_date, '%Y-%m-%d')
+	else:
+		start_date = None
+	if options.end_date:
+		end_date = datetime.strptime(options.end_date, '%Y-%m-%d')
+	else:
+		end_date = None
 
 	log.info("Tweets will be written to %s ..." % options.out_path )
 	header = ["Tweet_ID", "Created_At", "Author_Screen_Name", "Author_Id", "Text" ]
