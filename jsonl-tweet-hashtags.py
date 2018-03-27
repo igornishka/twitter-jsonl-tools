@@ -7,6 +7,7 @@ Sample usage:
 python jsonl-tweet-hashtags.py sample/sample-tweets-500.jsonl
 """
 import sys, fileinput, operator
+from datetime import datetime
 from optparse import OptionParser
 from collections import defaultdict
 import logging as log
